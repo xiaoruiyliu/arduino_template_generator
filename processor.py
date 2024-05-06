@@ -1,4 +1,5 @@
 import numpy as np
+
 class Template():
     def __init__(self, hardware, num_leds, colors, num_buttons = None, sensor_boundary = None):
         self.hardware = hardware

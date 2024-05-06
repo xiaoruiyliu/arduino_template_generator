@@ -74,9 +74,34 @@ export default class Main extends React.Component {
                         no_hardware_color: "",
                         current_q: "N",
                     }
+        this.updateColorList = this.updateColorList.bind(this)
+        this.updateColor = this.updateColor.bind(this)
+    }
+    updateColorList(id, c) {
+        var l = this.state.color_of_buttons
+        l[id] = c
+        console.log(id)
+        console.log(c)
+        this.setState(prevState => ({
+            color_of_buttons: l
+        }))
+    }
+    updateColor(id, c) {
+
+        this.setState({ [id]: c})
     }
     getAnswer(e, id) {
-        this.setState({ [id] :e.target.value})   
+        this.setState({ [id] :e.target.value}) 
+        console.log(id)
+        console.log(id === "n_of_buttons")
+        if (id === "n_of_buttons") {
+            console.log("nkdkfjdslkf")
+            var l = []
+            for(var i=0; i<e.target.value; i++) {
+                l.push("")
+            }
+            this.setState({color_of_buttons: l})
+        }  
     }
     getOption(id, name){
         this.setState({ [id]: name})
@@ -91,12 +116,39 @@ export default class Main extends React.Component {
         }
         else this.setState({current_q: next})
     }
+    getCode() {
+        console.log(this.state)
+        var formData = new FormData();
+        formData.append('n_of_led', this.state.n_of_led);
+        formData.append('hardware', this.state.hardware);
+        formData.append('n_of_buttons', this.state.n_of_buttons);
+        formData.append('color_of_buttons', this.state.color_of_buttons);
+        formData.append('ultrasonic_boundary', this.state.ultrasonic_boundary);
+        formData.append('ultrasonic_color1', this.state.ultrasonic_color1);
+        formData.append('ultrasonic_color2', this.state.ultrasonic_color2);
+        formData.append('no_hardware_color', this.state.no_hardware_color);
+        const data = new URLSearchParams(formData);
+        fetch("http://localhost:8000/", {
+            mode: 'cors',
+            method: 'POST',
+            body: data
+        }).then((res) =>{
+                console.log(res)
+                res.json().then((data) => {
+                    // Setting a data from api
+                    console.log(data)
+                })
+            }
+        );
+    }
     render () {
         console.log(this.state)
         if (this.state.current_q === "end") {
             return (
                 <div>
-                    DONE!
+                    <button onClick={() => this.getCode()}>
+                        Show Code
+                    </button>
                 </div>
             )
         }
@@ -131,7 +183,7 @@ export default class Main extends React.Component {
                 multiple_colors.push(
                     <div>
                         <h3>What is the color of button {i+1}?</h3>
-                        <ColorPicker/>
+                        <ColorPicker appendColor={this.updateColorList} id={i} />
                     </div>
                     
                 )
@@ -140,7 +192,7 @@ export default class Main extends React.Component {
 
         }
         else if (question.type === "color") {
-            answer_options = <ColorPicker />
+            answer_options = <ColorPicker appendColor={this.updateColor} id={question.id}/>
         }
         return (
             <div>
