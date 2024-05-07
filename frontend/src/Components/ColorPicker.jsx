@@ -13,7 +13,7 @@ export default class ColorPicker extends React.Component {
         return (
             <div>
                 <div>
-                    <input type="checkbox" id="no-color" name="no-color"
+                    <input type="checkbox" id="no-color" name="no-color" 
                             onChange={ () => this.props.appendColor(this.props.id, "no-color") } />
                     <label htmlFor="no-color">No color (dark)</label>
                 </div>
@@ -33,7 +33,7 @@ export default class ColorPicker extends React.Component {
                 {
                     (this.state.oneColor)? 
                     <div>
-                        <input type="color" onChange={e => this.props.appendColor(this.props.id, e.target.value)} />
+                        <input type="color" className="color-picker" onChange={e => this.props.appendColor(this.props.id, e.target.value)} />
                     </div>
                     : ''
                 }

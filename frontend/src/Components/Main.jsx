@@ -82,8 +82,6 @@ export default class Main extends React.Component {
     updateColorList(id, c) {
         var l = this.state.color_of_buttons
         l[id] = c
-        console.log(id)
-        console.log(c)
         this.setState(prevState => ({
             color_of_buttons: l
         }))
@@ -94,10 +92,7 @@ export default class Main extends React.Component {
     }
     getAnswer(e, id) {
         this.setState({ [id] :e.target.value}) 
-        console.log(id)
-        console.log(id === "n_of_buttons")
         if (id === "n_of_buttons") {
-            console.log("nkdkfjdslkf")
             var l = []
             for(var i=0; i<e.target.value; i++) {
                 l.push("")
@@ -109,17 +104,13 @@ export default class Main extends React.Component {
         this.setState({ [id]: name})
     }
     nextQuestion(next) {
-        console.log(next)
         if (next === "hardware options") {
-            console.log("here")
             var hardware = this.state.hardware
-            console.log(hardware)
             this.setState({current_q: hardware})
         }
         else this.setState({current_q: next})
     }
     getCode() {
-        console.log(this.state)
         var formData = new FormData();
         formData.append('n_of_led', this.state.n_of_led);
         formData.append('hardware', this.state.hardware);
@@ -135,7 +126,6 @@ export default class Main extends React.Component {
             method: 'POST',
             body: data
         }).then((res) =>{
-                console.log(res)
                 res.json().then((data) => {
                     // Setting a data from api
                     console.log(data.code)
@@ -145,12 +135,13 @@ export default class Main extends React.Component {
         );
     }
     render () {
-        console.log(this.state)
         if (this.state.current_q === "end") {
             if(this.state.code !== "") {
-                return <code id="code-block">
-                    {this.state.code}
-                </code>
+                return <div id="code-block">
+                    <code class="prettyprint" >
+                        {this.state.code}
+                    </code>
+                </div>
             }
             return (
                 <div>
@@ -167,18 +158,18 @@ export default class Main extends React.Component {
         }
         else if (question.type === "checkbox") {
             var option = question.options
-            answer_options = <div>
-                                <div>
+            answer_options = <div className="options">
+                                <div className="option">
                                     <input type="checkbox" id={option[0]} name={option[0]}
                                             onChange={ () => this.getOption(question.id , option[0]) } />
                                     <label htmlFor={option[0]}>{option[0]}</label>
                                 </div>
-                                <div>
+                                <div className="option">
                                     <input type="checkbox" id={option[1]} name={option[1]}
                                              onChange={ () => this.getOption(question.id, option[1]) }/>
                                     <label htmlFor={option[1]}>{option[1]}</label>
                                 </div>
-                                <div>
+                                <div className="option">
                                     <input type="checkbox" id={option[2]} name={option[2]}
                                             onChange={ () => this.getOption(question.id, option[2]) }/>
                                     <label htmlFor={option[2]}>{option[2]}</label>
@@ -189,14 +180,14 @@ export default class Main extends React.Component {
             var multiple_colors = []
             for(var i=0; i<this.state.n_of_buttons; i++) {
                 multiple_colors.push(
-                    <div>
+                    <div className="option">
                         <h3>What is the color of button {i+1}?</h3>
                         <ColorPicker appendColor={this.updateColorList} id={i} />
                     </div>
                     
                 )
             } 
-            answer_options = <div>{multiple_colors}</div>
+            answer_options = <div className="options">{multiple_colors}</div>
 
         }
         else if (question.type === "color") {

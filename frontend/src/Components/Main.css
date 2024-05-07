@@ -1,4 +1,30 @@
 #code-block {
     white-space: pre-wrap;
     text-align: left !important;
+    border: 1px solid rgb(181, 181, 181);
+    background-color: rgb(240, 244, 244);
+    color:rgb(34, 51, 51);
+    border-radius: 5px;
+    padding: 2vw;
+}
+
+.options {
+    margin-bottom: 3vw;
+
+}
+
+.options input{
+    width: 2vw;
+    margin: 0 2vw 0 0;
+}
+
+.options label {
+    font-size: 2vh;
+}
+
+.color-picker {
+    display: inline-block;
+    height: 5vw;
+    margin: 2vh 0 2vh 10vw;
+    border-radius: 5px;
 }
