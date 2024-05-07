@@ -37,6 +37,18 @@ class Template():
 
         print(self.colors)
 
+        def hex_to_rgb(hex):
+            return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
+
+        for i in range(len(self.colors)):
+            color = self.colors[i]
+            if color != "rainbow" and color != "no-color":
+                self.colors[i] = hex_to_rgb(color[1:])
+
+
+
+        print(self.colors)
+
         if hardware == self.BUTTONS:
             self.num_buttons = int(num_buttons)
         if hardware == self.SENSOR:
@@ -51,26 +63,26 @@ class Template():
         print(self.get_loop())
         print("get_additional_functions")
         print(self.get_additional_functions())
-        ret = self.get_prelude() + self.get_setup() + self.get_loop() + self.get_additional_functions()
+        ret = self.get_prelude() + "\n" + self.get_setup() + "\n" + self.get_loop() + "\n" + self.get_additional_functions()
         print(ret)
         return ret
 
     def get_prelude(self):
         define_leds = "\n#define NUM_OF_LED " + str(self.num_leds)
-        prelude = "#include <Adafruit_NeoPixel.h>" + define_leds + "\n#define PIXEL_PIN    6\n//global\nAdafruit_NeoPixel strip(NUM_OF_LED, PIXEL_PIN, NEO_GRB + NEO_KHZ800);\nHARDWARE_PRELUDE"
+        prelude = "#include <Adafruit_NeoPixel.h>" + define_leds + "\n#define PIXEL_PIN 6\n\n\n//global\nAdafruit_NeoPixel strip(NUM_OF_LED, PIXEL_PIN, NEO_GRB + NEO_KHZ800);\nHARDWARE_PRELUDE"
         if self.hardware == self.BUTTONS:
             dependent = self.get_prelude_buttons()
-            return prelude + dependent
+            return prelude.replace("HARDWARE_PRELUDE", dependent)
         elif self.hardware ==self.SENSOR:
             dependent = self.get_prelude_sensor()
-            return prelude + dependent
+            return prelude.replace("HARDWARE_PRELUDE", dependent)
         elif self.hardware == self.DEFAULT:
             return prelude
 
     def get_prelude_buttons(self):
         compiled = ""
         for i in range(1, self.num_buttons + 1):
-            compiled += f"\ndefine BUTTON_PIN_{i} //pin for the button no. {i}\nint button_val_{i} = 0;\nint prev_button_val_{i} = 0;"
+            compiled += f"\ndefine BUTTON_PIN_{i} //pin for the button no. {i}\nint button_val_{i} = 0;\nint prev_button_val_{i} = 0;\n"
         return compiled
 
     def get_prelude_sensor(self):
@@ -79,7 +91,7 @@ class Template():
         return compiled
 
     def get_setup(self):
-        setup = "\nvoid setup() {HARDWARE_DEPENDENCY\n\tstrip.begin();\n\tstrip.show();\n\t}"
+        setup = "\nvoid setup() {\nHARDWARE_DEPENDENCY\n\tstrip.begin();\n\tstrip.show();\n\n\t}"
         if self.hardware == self.BUTTONS:
             dependent = self.get_setup_buttons()
         elif self.hardware == self.SENSOR:
@@ -91,14 +103,14 @@ class Template():
     def get_setup_buttons(self):
         compiled = ""
         for i in range(1, self.num_buttons + 1):
-            compiled += f"\n\tpinMode(BUTTON_PIN_{i}, OUTPUT);"
+            compiled += f"\n\tpinMode(BUTTON_PIN_{i}, OUTPUT);\n"
         return compiled
 
     def get_setup_sensor(self):
         return "\n\tpinMode(ULTRASONIC_TRIG_PIN, OUTPUT);\n\tpinMode(ULTRASONIC_ECHO_PIN, INPUT);\n\tSerial.begin(9600);"
 
     def get_loop(self):
-        loop = "\nvoid loop() {LOOP_DEPENDENCY\n\t}"
+        loop = "\nvoid loop() {\nLOOP_DEPENDENCY\n}"
         dependent = self.get_color_logic()
         return loop.replace("LOOP_DEPENDENCY", dependent)
 
@@ -108,8 +120,8 @@ class Template():
             for i in range(1, self.num_buttons + 1):
                 snippet = f"\n\tif (!prev_button_val_{i} && button_val_{i})"
                 snippet += " {"
-                snippet += self.get_specific_color_logic(self.colors[i - 1])
-                snippet += "\n\t}"
+                snippet += "\n\t" + self.get_specific_color_logic(self.colors[i - 1])
+                snippet += "\n\t}\n"
                 compiled += snippet
         elif self.hardware == self.SENSOR:
             snippet = ("\n\tdigitalWrite(ULTRASONIC_TRIG_PIN, LOW);\n\tdelayMicroseconds(2);\n\tdigitalWrite("
@@ -117,35 +129,35 @@ class Template():
                        "LOW);\n\tduration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);\n\tdistance = duration * 0.034 / 2; "
                        "//distance in cm\n\tSerial.print(\"Distance: \");\n\tSerial.println(distance);")
             snippet += "\n\tif (distance < boundary) {"
-            snippet += self.get_specific_color_logic(self.colors[0])
+            snippet += "\n\t\t" + self.get_specific_color_logic(self.colors[0])
             snippet += "\n\t}"
             snippet += "\n\telse {"
-            snippet += self.get_specific_color_logic(self.colors[1])
+            snippet += "\n\t\t" + self.get_specific_color_logic(self.colors[1])
             snippet += "\n\t}"
             compiled += snippet
         elif self.hardware == self.DEFAULT:
-            compiled += self.get_specific_color_logic(self.colors[0])
+            compiled += "\n" + self.get_specific_color_logic(self.colors[0])
         return compiled
 
     def get_specific_color_logic(self, desired_output):
-        if desired_output is tuple:
+        if type(desired_output) is tuple:
             r, g, b = desired_output[0], desired_output[1], desired_output[2]
-            return f"\n\t\tcolorWipe(strip.Color(  {r}, {g}, {b}), 50); //the number 50 determines how fast the color changes"
+            return f"\tcolorWipe(strip.Color({r}, {g}, {b}), 50); //the number 50 determines how fast the color changes"
         if desired_output == "rainbow":
-            return "\n\t\ttheaterChaseRainbow(50);"
-        if desired_output == "clear":
-            return "\n\t\tstrip.clear();\n\t\tstrip.show();"
+            return "\ttheaterChaseRainbow(50);"
+        if desired_output == "no-color":
+            return "\tstrip.clear();\n\t\tstrip.show();"
 
     def get_additional_functions(self):
         compiled = ""
-        if "rainbow" in np.array(self.colors).flatten():
+        if "rainbow" in self.colors:
             compiled += ("\nvoid theaterChaseRainbow(int wait) {\n\tint firstPixelHue = 0;\n\tfor(int a=0; a<30; a++) {  // "
                     "Repeat 30 times...\n\t\tfor(int b=0; b<3; b++) {\n\t\t\tstrip.clear();\n\t\t\tfor(int c=b; "
                     "c<strip.numPixels(); c += 3) {\n\t\t\t\tint hue = firstPixelHue + c * 65536L / strip.numPixels("
                     ");\n\t\t\t\tuint32_t color = strip.gamma32(strip.ColorHSV(hue));\n\t\t\t\tstrip.setPixelColor(c, "
                     "color);\n\t\t\t}\n\t\t\tstrip.show();\n\t\t\tdelay(wait);\n\t\t\tfirstPixelHue += 65536 / "
                     "90;\n\t\t}\n\t}\n}")
-        if tuple in np.array(self.colors).flatten():
+        if tuple in self.colors:
             compiled += ("\nvoid colorWipe(uint32_t color, int wait) {\n\tfor(int i=0; i<strip.numPixels(); i++) { // "
                          "For each pixel in strip...\n\t\tstrip.setPixelColor(i, color);         //  Set pixel's "
                          "color (in RAM)\n\t\tstrip.show();                          //  Update strip to "
