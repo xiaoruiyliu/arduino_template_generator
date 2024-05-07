@@ -1,32 +1,70 @@
 import numpy as np
 
 class Template():
-    def __init__(self, hardware, num_leds, colors, num_buttons = None, sensor_boundary = None):
+    def __init__(self, hardware, num_leds,
+        button_colors, num_buttons,
+        sensor_color1, sensor_color2, sensor_boundary,
+        no_hardware_color):
+        
+        '''
+        n_of_led: 0,
+        hardware: "",
+        n_of_buttons: 0,
+        color_of_buttons: [],
+        ultrasonic_boundary: 0,
+        ultrasonic_color1: "",
+        ultrasonic_color2: "",
+        no_hardware_color: "",
+        '''
+        self.BUTTONS = "Buttons"
+        self.SENSOR = "Ultrasonic Sensor"
+        self.DEFAULT = "No other hardware"
+        
         self.hardware = hardware
-        self.num_leds = num_leds
+        self.num_leds = int(num_leds)
         # colors should be a list of user input (for example a sensor will have a list of two elements [(333,333,333), "rainbow"]
         # this represents the user wants an rgb specification for the < boundary and rainbow for > boundary
         # for default, should just be a list with one entry, ex: [(222, 222, 222)], off maps to "clear", and rainbow maps to "rainbow"
         # for buttons, it should be a list of values [clear, rainbow]
-        self.colors = colors
-        if hardware == "button":
-            self.num_buttons = num_buttons
-        if hardware == "sensor":
-            self.sensor_boundary = sensor_boundary
+        if button_colors != '':
+            self.colors = button_colors
+        elif sensor_color1 != '':
+            self.colors = sensor_color1 + ',' + sensor_color2
+        else:
+            self.colors = no_hardware_color
+
+        self.colors = self.colors.split(',')
+
+        print(self.colors)
+
+        if hardware == self.BUTTONS:
+            self.num_buttons = int(num_buttons)
+        if hardware == self.SENSOR:
+            self.sensor_boundary = int(sensor_boundary)
 
     def synthesize_program(self):
-        return self.get_prelude() + self.get_setup() + self.get_loop() + self.get_additional_functions()
+        print("get_prelude")
+        print(self.get_prelude())
+        print("get_setup")
+        print(self.get_setup())
+        print("get_loop")
+        print(self.get_loop())
+        print("get_additional_functions")
+        print(self.get_additional_functions())
+        ret = self.get_prelude() + self.get_setup() + self.get_loop() + self.get_additional_functions()
+        print(ret)
+        return ret
 
     def get_prelude(self):
         define_leds = "\n#define NUM_OF_LED " + str(self.num_leds)
         prelude = "#include <Adafruit_NeoPixel.h>" + define_leds + "\n#define PIXEL_PIN    6\n//global\nAdafruit_NeoPixel strip(NUM_OF_LED, PIXEL_PIN, NEO_GRB + NEO_KHZ800);\nHARDWARE_PRELUDE"
-        if self.hardware == "button":
+        if self.hardware == self.BUTTONS:
             dependent = self.get_prelude_buttons()
             return prelude + dependent
-        elif self.hardware == "sensor":
+        elif self.hardware ==self.SENSOR:
             dependent = self.get_prelude_sensor()
             return prelude + dependent
-        elif self.hardware == "default":
+        elif self.hardware == self.DEFAULT:
             return prelude
 
     def get_prelude_buttons(self):
@@ -42,11 +80,11 @@ class Template():
 
     def get_setup(self):
         setup = "\nvoid setup() {HARDWARE_DEPENDENCY\n\tstrip.begin();\n\tstrip.show();\n}"
-        if self.hardware == "button":
+        if self.hardware == self.BUTTONS:
             dependent = self.get_setup_buttons()
-        elif self.hardware == "sensor":
+        elif self.hardware == self.SENSOR:
             dependent = self.get_setup_sensor()
-        elif self.hardware == "default":
+        elif self.hardware == self.DEFAULT:
             dependent = ""
         return setup.replace("HARDWARE_DEPENDENCY", dependent)
 
@@ -66,14 +104,14 @@ class Template():
 
     def get_color_logic(self):
         compiled = ""
-        if self.hardware == "button":
+        if self.hardware == self.BUTTONS:
             for i in range(1, self.num_buttons + 1):
                 snippet = f"\n\tif (!prev_button_val_{i} && button_val_{i})"
                 snippet += " {"
                 snippet += self.get_specific_color_logic(self.colors[i - 1])
                 snippet += "\n\t}"
                 compiled += snippet
-        elif self.hardware == "sensor":
+        elif self.hardware == self.SENSOR:
             snippet = ("\n\tdigitalWrite(ULTRASONIC_TRIG_PIN, LOW);\n\tdelayMicroseconds(2);\n\tdigitalWrite("
                        "ULTRASONIC_TRIG_PIN, HIGH);\n\tdelayMicroseconds(10);\n\tdigitalWrite(ULTRASONIC_TRIG_PIN, "
                        "LOW);\n\tduration = pulseIn(ULTRASONIC_ECHO_PIN, HIGH);\n\tdistance = duration * 0.034 / 2; "
@@ -85,7 +123,7 @@ class Template():
             snippet += self.get_specific_color_logic(self.colors[1])
             snippet += "\n\t}"
             compiled += snippet
-        elif self.hardware == "default":
+        elif self.hardware == self.DEFAULT:
             compiled += self.get_specific_color_logic(self.colors[0])
         return compiled
 

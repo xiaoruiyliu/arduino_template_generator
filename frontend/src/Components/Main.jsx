@@ -1,5 +1,6 @@
 import React from "react";
 import ColorPicker from "./ColorPicker";
+import './Main.css'
 
 const Questions = {
     "N": {
@@ -73,6 +74,7 @@ export default class Main extends React.Component {
                         ultrasonic_color2: "",
                         no_hardware_color: "",
                         current_q: "N",
+                        code: ""
                     }
         this.updateColorList = this.updateColorList.bind(this)
         this.updateColor = this.updateColor.bind(this)
@@ -136,7 +138,8 @@ export default class Main extends React.Component {
                 console.log(res)
                 res.json().then((data) => {
                     // Setting a data from api
-                    console.log(data)
+                    console.log(data.code)
+                    this.setState({code: data.code})
                 })
             }
         );
@@ -144,6 +147,11 @@ export default class Main extends React.Component {
     render () {
         console.log(this.state)
         if (this.state.current_q === "end") {
+            if(this.state.code !== "") {
+                return <code id="code-block">
+                    {this.state.code}
+                </code>
+            }
             return (
                 <div>
                     <button onClick={() => this.getCode()}>
