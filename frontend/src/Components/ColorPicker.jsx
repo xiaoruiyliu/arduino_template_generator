@@ -9,7 +9,6 @@ export default class ColorPicker extends React.Component {
         }
     }
     render(){
-        console.log(this.state)
         return (
             <div>
                 <div>

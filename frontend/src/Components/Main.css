@@ -14,7 +14,7 @@
 }
 
 .options input{
-    width: 2vw;
+    width: 3vw;
     margin: 0 2vw 0 0;
 }
 
@@ -24,7 +24,9 @@
 
 .color-picker {
     display: inline-block;
+    box-sizing: border-box;
     height: 5vw;
+    width: 5vw;
     margin: 2vh 0 2vh 10vw;
     border-radius: 5px;
 }

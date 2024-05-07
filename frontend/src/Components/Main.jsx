@@ -138,7 +138,7 @@ export default class Main extends React.Component {
         if (this.state.current_q === "end") {
             if(this.state.code !== "") {
                 return <div id="code-block">
-                    <code class="prettyprint" >
+                    <code>
                         {this.state.code}
                     </code>
                 </div>
@@ -191,7 +191,7 @@ export default class Main extends React.Component {
 
         }
         else if (question.type === "color") {
-            answer_options = <ColorPicker appendColor={this.updateColor} id={question.id}/>
+            answer_options = <div className="options"><ColorPicker appendColor={this.updateColor} id={question.id}/></div>
         }
         return (
             <div>
