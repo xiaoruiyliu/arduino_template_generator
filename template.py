@@ -79,7 +79,7 @@ class Template():
         return compiled
 
     def get_setup(self):
-        setup = "\nvoid setup() {HARDWARE_DEPENDENCY\n\tstrip.begin();\n\tstrip.show();\n}"
+        setup = "\nvoid setup() {HARDWARE_DEPENDENCY\n\tstrip.begin();\n\tstrip.show();\n\t}"
         if self.hardware == self.BUTTONS:
             dependent = self.get_setup_buttons()
         elif self.hardware == self.SENSOR:
@@ -98,9 +98,9 @@ class Template():
         return "\n\tpinMode(ULTRASONIC_TRIG_PIN, OUTPUT);\n\tpinMode(ULTRASONIC_ECHO_PIN, INPUT);\n\tSerial.begin(9600);"
 
     def get_loop(self):
-        # complete the loop (not sure how completed loop would look like)
-        # TODO
-        return ""
+        loop = "\nvoid loop() {LOOP_DEPENDENCY\n\t}"
+        dependent = self.get_color_logic()
+        return loop.replace("LOOP_DEPENDENCY", dependent)
 
     def get_color_logic(self):
         compiled = ""
