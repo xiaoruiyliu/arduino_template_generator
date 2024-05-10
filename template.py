@@ -77,12 +77,12 @@ class Template():
             dependent = self.get_prelude_sensor()
             return prelude.replace("HARDWARE_PRELUDE", dependent)
         elif self.hardware == self.DEFAULT:
-            return prelude
+            return prelude.replace("HARDWARE_PRELUDE", '')
 
     def get_prelude_buttons(self):
         compiled = ""
         for i in range(1, self.num_buttons + 1):
-            compiled += f"\ndefine BUTTON_PIN_{i} //pin for the button no. {i}\nint button_val_{i} = 0;\nint prev_button_val_{i} = 0;\n"
+            compiled += f"\n#define BUTTON_PIN_{i} {i+6} //pin for the button no. {i}\nint button_val_{i} = 0;\nint prev_button_val_{i} = 0;\n"
         return compiled
 
     def get_prelude_sensor(self):
@@ -122,6 +122,7 @@ class Template():
                 snippet += " {"
                 snippet += "\n\t" + self.get_specific_color_logic(self.colors[i - 1])
                 snippet += "\n\t}\n"
+                snippet += f"\n\tprev_button_val_{i} = button_val_{i};\n\tbutton_val_{i} = digitalRead(BUTTON_PIN_{i});\n"
                 compiled += snippet
         elif self.hardware == self.SENSOR:
             snippet = ("\n\tdigitalWrite(ULTRASONIC_TRIG_PIN, LOW);\n\tdelayMicroseconds(2);\n\tdigitalWrite("
@@ -162,4 +163,8 @@ class Template():
                          "For each pixel in strip...\n\t\tstrip.setPixelColor(i, color);         //  Set pixel's "
                          "color (in RAM)\n\t\tstrip.show();                          //  Update strip to "
                          "match\n\t\tdelay(wait);                           //  Pause for a moment\n\t}\n}")
+        compiled += ("\nvoid colorWipe(uint32_t color, int wait) {\n\tfor(int i=0; i<strip.numPixels(); i++) {//" 
+                    "For each pixel in strip...\n\t\tstrip.setPixelColor(i, color);         //  Set pixel's color"
+                    "\n\t\tstrip.show();                          //  Update strip to match"
+                    "\n\t\tdelay(wait);                           //  Pause for a moment\n\t}\n}\n")
         return compiled
